@@ -5,7 +5,10 @@ const GameState = {
     RoomID: 0,
     Items: {
         Key: false,
-        Bucket: false,
+        Bucket: {
+            Has: false,
+            Filled: false
+        },
         Keycard: false,
         Fuse: false,
         TKey: false
@@ -166,3 +169,17 @@ function akcja(akc)
             break;
     }
 }
+
+function Start() {
+
+}
+
+function End(won) {
+    console.log(won ? "Wygrana! " : "Przegrana! ", "Wpisz start() aby zagrac ponownie!")
+}
+
+function Reset() {
+    console.log("Gra zrestartowana!")
+    Start()
+}
+
