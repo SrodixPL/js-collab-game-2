@@ -25,9 +25,6 @@ function Import() { // JSON Import
 
 }
 
-
-
-//YAY nowy branch O_o
 function akcja(akc)
 {
     switch(akc){
@@ -37,7 +34,6 @@ function akcja(akc)
                 //Wygrana();
             }
 
-            if()
             if(Keycard == false)
             {
                 console.log("Nie posiadasz karty.");
