@@ -1,0 +1,9 @@
+START - Pokoj z wejscie/wyjscie
+Generator room (cel - uzycie bezpiecznika i wlaczenie generatora)
+Kantorek (bezpieczniki + wiadro)
+Biuro (zamkniete na klucz, cel - karta do wyjscia)
+Lazieka (cel - napelnic wiadro)
+Stolowka (stolik z losowym zarciem)
+Pusty pokoj, 1% szans na zrespienie sie czolgu(automatyczna wygrana, wyjezdzasz przez sciane)
+
+Calosc 3x3
