@@ -1,4 +1,5 @@
 
+//YAY nowy branch O_o
 function akcja(akc)
 {
     switch(akc){
