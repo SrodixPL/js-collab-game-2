@@ -4,10 +4,12 @@ function akcja(akc)
 {
     switch(akc){
         case "Escape":
-            if(Keycard && Power)
+            if((GameState.Items.Keycard && GameState.Power) || GameState.Items.TKey)
             {
                 //Wygrana();
             }
+
+            if()
             if(Keycard == false)
             {
                 console.log("Nie posiadasz karty.");
@@ -25,9 +27,36 @@ function akcja(akc)
                     console.log("Posiadasz już kartę.")
                     return;
                 }    
-            //Keycard = true;
+            GameState.Items.Keycard = true;
             console.log("Podnosisz kartę.")
         break;
+        case "PickUpBucket":
+            if(GameState.Items.Bucket)
+                {
+                    console.log("Posiadasz już wiadro.")
+                    return;
+                }    
+            GameState.Items.Bucket = true;
+            console.log("Podnosisz wiadro.")
+            break;
+        case "PickUpFuse":
+            if(GameState.Items.Fuse)
+                {
+                    console.log("Posiadasz już bezpiecznik.")
+                    return;
+                }    
+            GameState.Items.fuse = true;
+            console.log("Podnosisz bezpiecznik.")
+            break;    
+        case "PickUpKey":
+            if(GameState.Items.Bucket)
+                {
+                    console.log("Posiadasz już klucz.")
+                    return;
+                }    
+            GameState.Items.Key = true;
+            console.log("Podnosisz klucz.")
+            break;
     }
 }
 
