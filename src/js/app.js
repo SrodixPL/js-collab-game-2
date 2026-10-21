@@ -358,6 +358,7 @@ function Wykonaj(polecenie) {
     console.clear();
     polecenie();
     WyswietlMape();
+    energia();
     Rozejrzyj();
 }
 function Pomoc() {
