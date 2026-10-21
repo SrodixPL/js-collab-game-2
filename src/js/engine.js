@@ -99,7 +99,7 @@ function GenerujMape() {
 }
 
 function WyswietlMape() {
-    const nazwyPokoi = Object.fromEntries(Object.entries(NazwyPokoi).map(([id, nazwa]) => [id, nazwa + (Number(id) === GameState.RoomID ? " *" : "")]));
+    const nazwyPokoi = Object.fromEntries(Object.entries(NazwyPokoi).map(([id, nazwa]) => [id, nazwa + (Number(id) === GameState.RoomID ? "*" : "")]));
 
     for (let i = 0; i < Mapa.length; i++) {
         console.log("┌─────────────┐   ┌─────────────┐   ┌─────────────┐");

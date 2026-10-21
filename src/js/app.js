@@ -14,6 +14,7 @@ const GameState = {
         TKey: false
     },
     Power: false,
+    GeneratorFire: true,
     Energy: 20,
     Ended: false,
     Won: false,
@@ -39,6 +40,7 @@ function Export() {
             TKey: GameState.Items.TKey
         },
         Power: GameState.Power,
+        GeneratorFire: GameState.GeneratorFire,
         Energy: GameState.Energy,
         Ended: GameState.Ended,
         Won: GameState.Won,
@@ -105,12 +107,15 @@ function Import(tekst) {
         || (przedmioty.Bucket.Filled && !przedmioty.Bucket.Has)) {
         return Odmow("niepoprawny stan wiadra.");
     }
-    const polaLogiczne = ["Ended", "Won", "OfficeOpen", "Tank", "TankKeyAvailable"];
+    // Starsze zapisy nie miały pożaru; działający generator pozostaje ugaszony.
+    if (kandydat.GeneratorFire === undefined) kandydat.GeneratorFire = !kandydat.Power;
+    const polaLogiczne = ["GeneratorFire", "Ended", "Won", "OfficeOpen", "Tank", "TankKeyAvailable"];
     for (const pole of polaLogiczne) {
         if (typeof kandydat[pole] !== "boolean") return Odmow("niepoprawne pole " + pole);
     }
     if (kandydat.Ended !== (kandydat.Won || kandydat.Energy === 0)
         || (kandydat.Power && przedmioty.Fuse)
+        || (kandydat.Power && kandydat.GeneratorFire)
         || ((przedmioty.Keycard || kandydat.RoomID === 4) && !kandydat.OfficeOpen)
         || (przedmioty.TKey && !kandydat.TankKeyAvailable)) return Odmow("sprzeczny stan gry.");
     if (kandydat.Won && !(kandydat.RoomID === 1 && przedmioty.Keycard && kandydat.Power)
@@ -234,6 +239,11 @@ function Akcja(akc)
                 console.log("Nie ma tu generatora do włączenia.");
                 return;
             }
+            if(GameState.GeneratorFire)
+            {
+                console.log("Najpierw ugaś generatory pełnym wiadrem wody: UzyjWiadro.");
+                return;
+            }
             if(GameState.Items.Fuse != true)
             {
                 console.log("Nie posiadasz bezpiecznika.");
@@ -243,6 +253,21 @@ function Akcja(akc)
             GameState.Items.Fuse = false;
             console.log("Włączasz generator.");
 
+            break;
+        case "UzyjWiadro":
+            if(GameState.RoomID !== 2 || !GameState.GeneratorFire)
+            {
+                console.log("Nie ma tu generatorów do ugaszenia.");
+                return;
+            }
+            if(!GameState.Items.Bucket.Has || !GameState.Items.Bucket.Filled)
+            {
+                console.log("Potrzebujesz pełnego wiadra wody.");
+                return;
+            }
+            GameState.GeneratorFire = false;
+            GameState.Items.Bucket.Filled = false;
+            console.log("Gasisz generatory. Możesz teraz włączyć zasilanie z bezpiecznikiem.");
             break;
         case "NapelnijWiadro":
             if(GameState.RoomID != 5)
@@ -293,12 +318,13 @@ function Start() {
         TKey: false
     };
     GameState.Power = false;
+    GameState.GeneratorFire = true;
     GameState.Energy = 20;
     GameState.Ended = false;
     GameState.Won = false;
     GameState.OfficeOpen = false;
     GameState.Tank = Math.random() < 0.05;
-    GameState.TankKeyAvailable = Math.random() < 0.10;
+    GameState.TankKeyAvailable = Math.random() < 0.1;
     GenerujMape();
 
 }
@@ -333,7 +359,8 @@ function DostepneAkcje() {
     }
     if (pokoj === 4 && !rzeczy.Keycard) akcje.push(["PodniesKarte", "karta dostępu"]);
     if (!GameState.OfficeOpen && rzeczy.Key && Object.values(Przejscia[pokoj]).includes(4)) akcje.push(["OtworzBiuro"]);
-    if (pokoj === 2 && !GameState.Power && rzeczy.Fuse) akcje.push(["WlaczGenerator"]);
+    if (pokoj === 2 && GameState.GeneratorFire && rzeczy.Bucket.Has && rzeczy.Bucket.Filled) akcje.push(["UzyjWiadro"]);
+    if (pokoj === 2 && !GameState.Power && !GameState.GeneratorFire && rzeczy.Fuse) akcje.push(["WlaczGenerator"]);
     if (pokoj === 5 && rzeczy.Bucket.Has && !rzeczy.Bucket.Filled) akcje.push(["NapelnijWiadro"]);
     if (pokoj === 6) akcje.push(["Zjedz"]);
     if ((pokoj === 1 && rzeczy.Keycard && GameState.Power) || (pokoj === 7 && GameState.Tank && rzeczy.TKey)) akcje.push(["Ucieknij"]);
@@ -345,7 +372,7 @@ function Rozejrzyj() {
     const akcje = DostepneAkcje();
     const przedmioty = akcje.filter(([, przedmiot]) => przedmiot).map(([, przedmiot]) => przedmiot);
     console.log("Przedmioty: " + (przedmioty.join(", ") || "brak") + ".");
-    if (GameState.RoomID === 2) console.log(GameState.Power ? "Generator działa." : "Generator wymaga bezpiecznika.");
+    if (GameState.RoomID === 2) console.log(GameState.GeneratorFire ? "Generatory płoną. Ugaś je pełnym wiadrem wody (UzyjWiadro)." : GameState.Power ? "Generator działa." : "Generator wymaga bezpiecznika.");
     if (GameState.RoomID === 5) console.log("Jest tu kran z wodą.");
     if (GameState.RoomID === 6) console.log("Jest tu jedzenie.");
     if (GameState.RoomID === 7 && GameState.Tank) console.log("Stoi tu czołg wymagający kluczyków.");
@@ -358,7 +385,7 @@ function Wykonaj(polecenie) {
     console.clear();
     polecenie();
     WyswietlMape();
-    energia();
+    console.log("Energia: " + GameState.Energy + "/20.");
     Rozejrzyj();
 }
 function Pomoc() {
@@ -370,7 +397,7 @@ function start() { Wykonaj(() => { Start(); }); }
 function reset() { start(); }
 function idz(kierunek) { Wykonaj(() => Idz(kierunek)); }
 function akcja(nazwa) { Wykonaj(() => Akcja(nazwa)); }
-function mapa() { Wykonaj(WyswietlMape); }
+function mapa() { Wykonaj(() => {}); }
 function rozejrzyj() { Wykonaj(() => {}); }
 function energia() { Wykonaj(() => console.log("Energia: " + GameState.Energy + "/20.")); }
 function status() { Wykonaj(() => console.log(JSON.stringify(GameState, null, 2))); }
