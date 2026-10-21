@@ -357,6 +357,7 @@ function Rozejrzyj() {
 function Wykonaj(polecenie) {
     console.clear();
     polecenie();
+    WyswietlMape();
     Rozejrzyj();
 }
 function Pomoc() {
@@ -364,7 +365,7 @@ function Pomoc() {
     console.log('idz("prawo"/"lewo"/"gora"/"dol"), prawo(), lewo(), gora(), dol()');
     console.log('Akcje dostępne w pokoju są wypisane poniżej.');
 }
-function start() { Wykonaj(() => { Start(); WyswietlMape(); }); }
+function start() { Wykonaj(() => { Start(); }); }
 function reset() { start(); }
 function idz(kierunek) { Wykonaj(() => Idz(kierunek)); }
 function akcja(nazwa) { Wykonaj(() => Akcja(nazwa)); }
