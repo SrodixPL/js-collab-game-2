@@ -1,9 +1,9 @@
-START - Pokoj z wejscie/wyjscie
-Generator room (cel - uzycie bezpiecznika i wlaczenie generatora)
-Kantorek (bezpieczniki + wiadro)
-Biuro (zamkniete na klucz, cel - karta do wyjscia)
-Lazieka (cel - napelnic wiadro)
-Stolowka (stolik z losowym zarciem)
-Pusty pokoj, 1% szans na zrespienie sie czolgu(automatyczna wygrana, wyjezdzasz przez sciane)
-
-Calosc 3x3
+START - wejście i wyjście; Escape wymaga karty i zasilania.
+Generatorownia - GenOn wymaga bezpiecznika i pełnego wiadra do chłodzenia; zużywa bezpiecznik i wodę.
+Kantorek - bezpiecznik, wiadro, klucz do biura; 10% szansy na kluczyki TKey.
+Biuro - zamknięte na klucz; poza środkiem mapy; w środku karta do wyjścia.
+Łazienka - napełnianie wiadra.
+Stołówka - losowe jedzenie i bonus energii, każda porcja kosztuje też 1 energii.
+Pusty pokój - 5% szansy na czołg. Escape z TKey daje alternatywną wygraną przez ścianę.
+Czołg i TKey są losowane niezależnie raz na nową grę, a nie przy każdym wejściu.
+Całość 3×3; siedem pokoi, dwa pola niedostępne. Zamknięte biuro nie blokuje drogi do innych pokojów.
