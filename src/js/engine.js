@@ -1,96 +1,96 @@
-const NazwyPokoi = {0: "", 1: "Start", 2: "Generatory", 3: "Kantorek", 4: "Biuro", 5: "Łazienka", 6: "Stołówka", 7: "Pusty pokój"};
+const roomNames = {0: "", 1: "Start", 2: "Generatory", 3: "Kantorek", 4: "Biuro", 5: "Łazienka", 6: "Stołówka", 7: "Pusty pokój"};
 
-let Mapa = [
+let gameMap = [
     [0, 0, 0],
     [0, 0, 0],
     [0, 0, 0]
 ];
 
-let Przejscia = {};
+let transitions = {};
 
-function Tasuj(lista) {
-    for (let i = lista.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [lista[i], lista[j]] = [lista[j], lista[i]];
+function shuffle(list) {
+    for (let rowIndex = list.length - 1; rowIndex > 0; rowIndex--) {
+        const columnIndex = Math.floor(Math.random() * (rowIndex + 1));
+        [list[rowIndex], list[columnIndex]] = [list[columnIndex], list[rowIndex]];
     }
 }
 
-function GenerujMape() {
-    Mapa = Array.from({ length: 3 }, () => [0, 0, 0]);
+function generateMap() {
+    gameMap = Array.from({ length: 3 }, () => [0, 0, 0]);
 
-    let pola = [];
+    let cells = [];
 
-    for (let i = 0; i < 3; i++) {
-        for (let j = 0; j < 3; j++) {
-            if (!(i === 2 && j === 2)) {
-                pola.push([i, j]);
+    for (let rowIndex = 0; rowIndex < 3; rowIndex++) {
+        for (let columnIndex = 0; columnIndex < 3; columnIndex++) {
+            if (!(rowIndex === 2 && columnIndex === 2)) {
+                cells.push([rowIndex, columnIndex]);
             }
         }
     }
 
-    Tasuj(pola);
+    shuffle(cells);
 
-    let liczby = [1, 2, 3, 4, 5, 6, 7];
-    Tasuj(liczby);
+    let roomIds = [1, 2, 3, 4, 5, 6, 7];
+    shuffle(roomIds);
 
-    let [r, c] = pola[0];
-    Mapa[r][c] = 1;
+    let [startRow, startColumn] = cells[0];
+    gameMap[startRow][startColumn] = 1;
 
-    let pozostale = liczby.filter(n => n !== 1);
+    let remainingRoomIds = roomIds.filter(n => n !== 1);
 
-    for (let i = 1; i < 7; i++) {
-        [r, c] = pola[i];
-        Mapa[r][c] = pozostale[i - 1];
+    for (let cellIndex = 1; cellIndex < 7; cellIndex++) {
+        const [rowIndex, columnIndex] = cells[cellIndex];
+        gameMap[rowIndex][columnIndex] = remainingRoomIds[cellIndex - 1];
     }
 
-    if (Mapa[1][1] === 4) {
-        return GenerujMape();
+    if (gameMap[1][1] === 4) {
+        return generateMap();
     }
 
-    Przejscia = {};
-    const sasiedzi = {};
-    for (const id of pozostale.concat(1)) sasiedzi[id] = [];
-    const krawedzie = [];
-    for (let w = 0; w < 3; w++) {
-        for (let k = 0; k < 3; k++) {
-            const id = Mapa[w][k];
-            if (!id) continue;
-            if (k < 2 && Mapa[w][k + 1]) krawedzie.push([id, Mapa[w][k + 1]]);
-            if (w < 2 && Mapa[w + 1][k]) krawedzie.push([id, Mapa[w + 1][k]]);
+    transitions = {};
+    const neighbors = {};
+    for (const roomId of remainingRoomIds.concat(1)) neighbors[roomId] = [];
+    const edges = [];
+    for (let rowIndex = 0; rowIndex < 3; rowIndex++) {
+        for (let columnIndex = 0; columnIndex < 3; columnIndex++) {
+            const roomId = gameMap[rowIndex][columnIndex];
+            if (!roomId) continue;
+            if (columnIndex < 2 && gameMap[rowIndex][columnIndex + 1]) edges.push([roomId, gameMap[rowIndex][columnIndex + 1]]);
+            if (rowIndex < 2 && gameMap[rowIndex + 1][columnIndex]) edges.push([roomId, gameMap[rowIndex + 1][columnIndex]]);
         }
     }
-    const odwiedzone = new Set([1]);
-    while (odwiedzone.size < 7) {
-        const mozliwe = krawedzie.filter(([a, b]) => odwiedzone.has(a) !== odwiedzone.has(b));
-        const bezBiura = mozliwe.filter(([a, b]) => a !== 4 && b !== 4);
-        if (odwiedzone.size < 6) {
-            if (bezBiura.length === 0) return GenerujMape();
-            mozliwe.splice(0, mozliwe.length, ...bezBiura);
+    const visited = new Set([1]);
+    while (visited.size < 7) {
+        const candidates = edges.filter(([a, b]) => visited.has(a) !== visited.has(b));
+        const withoutOffice = candidates.filter(([a, b]) => a !== 4 && b !== 4);
+        if (visited.size < 6) {
+            if (withoutOffice.length === 0) return generateMap();
+            candidates.splice(0, candidates.length, ...withoutOffice);
         }
-        if (mozliwe.length === 0) return GenerujMape();
-        const [a, b] = mozliwe[Math.floor(Math.random() * mozliwe.length)];
-        sasiedzi[a].push(b);
-        sasiedzi[b].push(a);
-        odwiedzone.add(a);
-        odwiedzone.add(b);
-        krawedzie.splice(krawedzie.findIndex(([x, y]) => (x === a && y === b) || (x === b && y === a)), 1);
+        if (candidates.length === 0) return generateMap();
+        const [a, b] = candidates[Math.floor(Math.random() * candidates.length)];
+        neighbors[a].push(b);
+        neighbors[b].push(a);
+        visited.add(a);
+        visited.add(b);
+        edges.splice(edges.findIndex(([x, y]) => (x === a && y === b) || (x === b && y === a)), 1);
     }
-    for (const [a, b] of krawedzie) {
+    for (const [a, b] of edges) {
         if (Math.random() < 0.3) {
-            sasiedzi[a].push(b);
-            sasiedzi[b].push(a);
+            neighbors[a].push(b);
+            neighbors[b].push(a);
         }
     }
-    const kierunki = [["gora", -1, 0], ["dol", 1, 0], ["lewo", 0, -1], ["prawo", 0, 1]];
-    for (let w = 0; w < 3; w++) {
-        for (let k = 0; k < 3; k++) {
-            const id = Mapa[w][k];
-            if (!id) continue;
-            Przejscia[id] = {};
-            for (const [nazwa, dw, dk] of kierunki) {
-                const nw = w + dw, nk = k + dk;
-                if (nw >= 0 && nw < 3 && nk >= 0 && nk < 3 && sasiedzi[id].includes(Mapa[nw][nk])) {
-                    Przejscia[id][nazwa] = Mapa[nw][nk];
+    const directions = [["gora", -1, 0], ["dol", 1, 0], ["lewo", 0, -1], ["prawo", 0, 1]];
+    for (let rowIndex = 0; rowIndex < 3; rowIndex++) {
+        for (let columnIndex = 0; columnIndex < 3; columnIndex++) {
+            const roomId = gameMap[rowIndex][columnIndex];
+            if (!roomId) continue;
+            transitions[roomId] = {};
+            for (const [name, deltaRow, deltaColumn] of directions) {
+                const nextRow = rowIndex + deltaRow, nextColumn = columnIndex + deltaColumn;
+                if (nextRow >= 0 && nextRow < 3 && nextColumn >= 0 && nextColumn < 3 && neighbors[roomId].includes(gameMap[nextRow][nextColumn])) {
+                    transitions[roomId][name] = gameMap[nextRow][nextColumn];
                 }
             }
         }
@@ -98,97 +98,100 @@ function GenerujMape() {
 
 }
 
-function WyswietlMape() {
-    const nazwyPokoi = Object.fromEntries(Object.entries(NazwyPokoi).map(([id, nazwa]) => [id, nazwa + (Number(id) === GameState.RoomID ? "*" : "")]));
+function displayMap() {
+    const labels = Object.fromEntries(Object.entries(roomNames).map(([roomId, name]) =>
+        [roomId, name + (Number(roomId) === gameState.roomId ? "*" : "")]
+    ));
+    const labelWidth = Math.max(...Object.values(labels).map(label => label.length));
+    const cellWidth = labelWidth + 4;
+    const topBorder = "┌" + "─".repeat(labelWidth + 2) + "┐";
+    const bottomBorder = "└" + "─".repeat(labelWidth + 2) + "┘";
 
-    for (let i = 0; i < Mapa.length; i++) {
-        console.log("┌─────────────┐   ┌─────────────┐   ┌─────────────┐");
-        console.log(
-            "│ " + nazwyPokoi[Mapa[i][0]].padEnd(11) + " │" + (Przejscia[Mapa[i][0]] && Przejscia[Mapa[i][0]].prawo ? "───" : "   ") + "│ " +
-            nazwyPokoi[Mapa[i][1]].padEnd(11) + " │" + (Przejscia[Mapa[i][1]] && Przejscia[Mapa[i][1]].prawo ? "───" : "   ") + "│ " +
-            nazwyPokoi[Mapa[i][2]].padEnd(11) + " │"
-        );
-        console.log("└─────────────┘   └─────────────┘   └─────────────┘");
-        if (i < Mapa.length - 1) {
-            let linia = "";
-            for (let j = 0; j < 3; j++) {
-                linia += Przejscia[Mapa[i][j]] && Przejscia[Mapa[i][j]].dol ? "       │       " : "               ";
-                if (j < 2) linia += "   ";
-            }
-            console.log(linia);
+    for (let rowIndex = 0; rowIndex < gameMap.length; rowIndex++) {
+        const row = gameMap[rowIndex];
+        console.log(row.map(() => topBorder).join("   "));
+        console.log(row.map((roomId, columnIndex) => {
+            const cell = "│ " + labels[roomId].padEnd(labelWidth) + " │";
+            return cell + (columnIndex < row.length - 1
+                ? (transitions[roomId]?.prawo ? "───" : "   ") : "");
+        }).join(""));
+        console.log(row.map(() => bottomBorder).join("   "));
+        if (rowIndex < gameMap.length - 1) {
+            console.log(row.map(roomId => {
+                const middle = Math.floor(cellWidth / 2);
+                return transitions[roomId]?.dol
+                    ? " ".repeat(middle) + "│" + " ".repeat(cellWidth - middle - 1)
+                    : " ".repeat(cellWidth);
+            }).join("   "));
         }
     }
 }
 
-function Idz(kierunek) {
-    if (GameState.Ended) {
-        console.log("Gra zakończona. Wpisz start().");
+function moveTo(direction) {
+    if (gameState.ended) {
+        console.log("Gra zakończona. Wpisz rozpocznij().");
         return false;
     }
-    if (!["prawo", "lewo", "gora", "dol"].includes(kierunek)) {
+    if (!["prawo", "lewo", "gora", "dol"].includes(direction)) {
         console.log('Wpisz idz("prawo"), idz("lewo"), idz("gora") albo idz("dol").');
         return false;
     }
-    const cel = Przejscia[GameState.RoomID] && Przejscia[GameState.RoomID][kierunek];
-    if (!cel) {
-        console.log("Nie ma otwartego przejscia w tym kierunku.");
+    const target = transitions[gameState.roomId] && transitions[gameState.roomId][direction];
+    if (!target) {
+        console.log("Nie ma otwartego przejścia w tym kierunku.");
         return false;
     }
-    if (cel === 4 && !GameState.OfficeOpen) {
-        console.log('Biuro jest zamknięte. Użyj akcja("OtworzBiuro") przy drzwiach.');
+    if (target === 4 && !gameState.officeOpen) {
+        console.log('Biuro jest zamknięte. Użyj akcja("otworzBiuro") przy drzwiach.');
         return false;
     }
-    GameState.RoomID = cel;
-    console.log("Przechodzisz do pokoju " + NazwyPokoi[cel] + ".");
-    if (cel === 7 && GameState.Tank) console.log('W pokoju stoi czołg. Ucieczka wymaga kluczyków do czołgu.');
-    ZuzyjEnergie();
+    gameState.roomId = target;
+    console.log("Przechodzisz do pokoju " + roomNames[target] + ".");
+    if (target === 7 && gameState.tank) console.log('W pokoju stoi czołg. Ucieczka wymaga kluczyków do czołgu.');
+    spendEnergy();
     return true;
 }
-function prawo() { idz("prawo"); }
-function lewo() { idz("lewo"); }
-function gora() { idz("gora"); }
-function dol() { idz("dol"); }
 
-function CzyMapa(mapa, przejscia) {
-    if (!Array.isArray(mapa) || mapa.length !== 3) return false;
-    let pokoje = [];
-    for (const wiersz of mapa) {
-        if (!Array.isArray(wiersz) || wiersz.length !== 3) return false;
-        for (const id of wiersz) {
-            if (!Number.isInteger(id) || id < 0 || id > 7) return false;
-            pokoje.push(id);
+function isValidMap(map, paths) {
+    if (!Array.isArray(map) || map.length !== 3) return false;
+    let rooms = [];
+    for (const row of map) {
+        if (!Array.isArray(row) || row.length !== 3) return false;
+        for (const roomId of row) {
+            if (!Number.isInteger(roomId) || roomId < 0 || roomId > 7) return false;
+            rooms.push(roomId);
         }
     }
-    for (let id = 1; id <= 7; id++) {
-        if (pokoje.filter(p => p === id).length !== 1) return false;
+    for (let roomId = 1; roomId <= 7; roomId++) {
+        if (rooms.filter(p => p === roomId).length !== 1) return false;
     }
-    if (mapa[1][1] === 4 || !przejscia || typeof przejscia !== "object" || Array.isArray(przejscia)) return false;
-    const kierunki = {gora: [-1, 0, "dol"], dol: [1, 0, "gora"], lewo: [0, -1, "prawo"], prawo: [0, 1, "lewo"]};
-    for (let id = 1; id <= 7; id++) {
-        if (!przejscia[id] || typeof przejscia[id] !== "object" || Array.isArray(przejscia[id])) return false;
+    if (map[1][1] === 4 || !paths || typeof paths !== "object" || Array.isArray(paths)) return false;
+    const directions = {gora: [-1, 0, "dol"], dol: [1, 0, "gora"], lewo: [0, -1, "prawo"], prawo: [0, 1, "lewo"]};
+    for (let roomId = 1; roomId <= 7; roomId++) {
+        if (!paths[roomId] || typeof paths[roomId] !== "object" || Array.isArray(paths[roomId])) return false;
     }
-    for (let r = 0; r < 3; r++) {
-        for (let c = 0; c < 3; c++) {
-            const id = mapa[r][c];
-            if (!id) continue;
-            for (const kierunek of Object.keys(przejscia[id])) {
-                if (!Object.hasOwn(kierunki, kierunek)) return false;
-                const [dr, dc, odwrotny] = kierunki[kierunek];
-                const cel = przejscia[id][kierunek];
-                if (!Number.isInteger(cel) || cel < 1 || cel > 7 || !mapa[r + dr]
-                    || mapa[r + dr][c + dc] !== cel || przejscia[cel][odwrotny] !== id) return false;
+    for (let rowIndex = 0; rowIndex < 3; rowIndex++) {
+        for (let columnIndex = 0; columnIndex < 3; columnIndex++) {
+            const roomId = map[rowIndex][columnIndex];
+            if (!roomId) continue;
+            for (const direction of Object.keys(paths[roomId])) {
+                if (!Object.hasOwn(directions, direction)) return false;
+                const [dr, dc, opposite] = directions[direction];
+                const target = paths[roomId][direction];
+                if (!Number.isInteger(target) || target < 1 || target > 7 || !map[rowIndex + dr]
+                    || map[rowIndex + dr][columnIndex + dc] !== target || paths[target][opposite] !== roomId) return false;
             }
         }
     }
-    for (const bezBiura of [false, true]) {
-        const odwiedzone = [1];
-        for (let i = 0; i < odwiedzone.length; i++) {
-            for (const cel of Object.values(przejscia[odwiedzone[i]])) {
-                if (bezBiura && cel === 4) continue;
-                if (!odwiedzone.includes(cel)) odwiedzone.push(cel);
+    for (const withoutOffice of [false, true]) {
+        const visited = [1];
+        for (let rowIndex = 0; rowIndex < visited.length; rowIndex++) {
+            for (const target of Object.values(paths[visited[rowIndex]])) {
+                if (withoutOffice && target === 4) continue;
+                if (!visited.includes(target)) visited.push(target);
             }
         }
-        if (odwiedzone.length !== (bezBiura ? 6 : 7)) return false;
+        if (visited.length !== (withoutOffice ? 6 : 7)) return false;
     }
     return true;
 }
